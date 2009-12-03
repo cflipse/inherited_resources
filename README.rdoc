@@ -515,6 +515,38 @@ Another nice thing is that those urls are not guessed during runtime. They are
 all created when your application is loaded (except for polymorphic
 associations, that relies on Rails polymorphic_url).
 
+== Recording the modifying user
+
+You can request that a resource controller record the user modifying a
+resource.  
+
+  class PostsController < InheritedResources::Base
+    records_user
+  end
+
+By default, this will attempt to record the #current_user into certain
+attributes prior to saving the resource:  
+
+  create:     creator, updater
+  update:     updater
+  destroy:    deleter
+
+You can tell IR to record the user record to other attributes
+  
+  class CommentsController < InheritedResources::Base
+    records_user :creator => :commenter, 
+                 :updater => :edited_by,
+                 :deleter => :removed_by
+  end
+
+You can also specify a method other than current_user
+  
+  class CommentsController < InheritedResources::Base
+    records_user :current_user => :logged_in_as
+  end
+
+This feature was inspired by the Userstamp plugin
+
 == Bugs and Feedback
 
 If you discover any bugs or want to drop a line, join us in the mailing list:

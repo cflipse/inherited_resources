@@ -282,6 +282,39 @@ module InheritedResources
         belongs_to(*symbols << options, &block)
       end
 
+      # Turn on recording of user information on create, update or destroy
+      #
+      #   records_user 
+      #
+      # == Options
+      #
+      # * <tt>:current_user</tt> - allows you to specify a method for finding the user record to assign
+      #                            default is #current_user
+      #
+      # * <tt>:creator</tt> - attribute to assign creator information
+      #                       default is #creator
+      #
+      # * <tt>:updater</tt> - attribute to assign updater information
+      #                       default is #updater
+      #
+      # * <tt>:deleter</tt> - attribute to assign updater information
+      #                       default is #deleter
+      def records_user(*recs)
+        options = recs.extract_options!
+        options.symbolize_keys!
+
+        options.assert_valid_keys(:updater, :creator, :deleter, :current_user)
+
+        if self.userstamp_configuration.empty?
+          include Userstamp
+
+          self.userstamp_configuration[:updater] = options[:updater] || "updater"
+          self.userstamp_configuration[:creator] = options[:creator] || "creator"
+          self.userstamp_configuration[:deleter] = options[:deleter] || "deleter"
+          self.userstamp_configuration[:current_user] = options[:current_user] || "current_user"
+        end
+      end
+
     private
 
       def acts_as_singleton! #:nodoc:
@@ -325,6 +358,7 @@ module InheritedResources
         # Initialize polymorphic, singleton, scopes and belongs_to parameters
         self.parents_symbols      ||= []
         self.scopes_configuration ||= {}
+        self.userstamp_configuration ||= {}
         self.resources_configuration[:polymorphic] ||= { :symbols => [], :optional => false }
       end
 
